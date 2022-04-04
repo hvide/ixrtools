@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+
+{% extends "rsvp/base.html" %}
+{% block content %}
+
+<body>
+    <h1>Search Path</h1>
+
+ <p>Insert thename of the path to search:</p>
+
+<form action="{% url 'get_path' %}" method="POST">
+    {% csrf_token %}
+    <label for="rsvp_path_name">Search:</label><br>
+    <input type="text" id="rsvp_path_name" name="rsvp_path_name"><br>
+    <input type="submit" value="Submit">
+</form>
+</body>
+
+{% endblock content %}
+
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+    table {
+      font-family: arial, sans-serif;
+      border-collapse: collapse;
+      width: 80%;
+    }
+
+    td, th {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 8px;
+    }
+
+    tr:nth-child(even) {
+      background-color: #dddddd;
+    }
+    </style>
+</head>
+
+{% extends "rsvp/base.html" %}
+{% block content %}
+
+<body>
+    <h1>RSVP Path</h1>
+    <h2>Path name: {{ search_string }}</h2>
+    <table>
+      <tr>
+        <th>Hostname</th>
+        <th>Next hop IP</th>
+        <th>Order</th>
+      </tr>
+      <tr>
+        {% for hop in result.hops %}
+            <tr>
+            <td>{{ hop.nexthop_hostname_short }}</td>
+            <td>{{ hop.nexthop_ip }}</td>
+            <td>{{ hop.order }}</td>
+        {% endfor %}
+      </tr>
+    </table>
+<!--    <h5>{{ hop.nexthop_hostname_short }} - {{ hop.nexthop_ip }} - {{ hop.order }}</h5>-->
+</body>
+
+{% endblock content %}
+
+</html>
