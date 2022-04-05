@@ -5,12 +5,22 @@ from .nmsclient import NmsClient
 import logging
 from .utils import jinja2_load
 
+from pprint import pprint
+
 logger = logging.getLogger()
 
 
 class RsvpClient(NmsClient):
     def __init__(self, api_key: str, base_url: str, verify: bool = True):
         super().__init__(api_key, base_url, verify)
+
+    def _nexthop_map(self):
+        ospf_nbrs = self.get_ospf_nbr()
+        d = dict()
+        for ospf_nbr in ospf_nbrs:
+            d[ospf_nbr.ospfNbrIpAddr] = ospf_nbr.ospfNbrRtrId
+
+        return d
 
     def get_rsvp_lsp_info(self, search_string):
         search_result = self.search_oxidized(search_string)
@@ -45,10 +55,13 @@ class RsvpClient(NmsClient):
             return data
 
     def get_rsvp_path_info(self, search_string):
+
         search_result = self.search_oxidized(search_string)
         data = dict()
 
         if search_result is not None:
+
+            nexthops = self._nexthop_map()
 
             for node in search_result:
                 # hostname = node['node']
@@ -76,9 +89,18 @@ class RsvpClient(NmsClient):
                             hop['order'] = line_split[-1]
                             hop['hop_type'] = line_split[-3]
                             hop['nexthop_ip'] = line_split[-4]
-                            device_id = self.search_ports(line_split[-4].split("/")[0], "ifName")[0]['device_id']
-                            hop['nexthop_hostname'] = self.get_device(str(device_id)).hostname
-                            hop['nexthop_hostname_short'] = ".".join(self.get_device(str(device_id)).hostname.split(".")[:3])
+                            # device_id = self.search_ports(line_split[-4].split("/")[0], "ifName")[0]['device_id']
+                            nexthop_ip = nexthops[line_split[-4].split("/")[0]]
+                            devices = self.get_devices(filter_type="ipv4", query=nexthop_ip)
+                            device = [d for d in devices if d.status]
+
+                            if len(devices) > 1:
+                                logger.warning("more then two devices with te same IP were found: {}".format(device))
+
+                            device = device[0]
+
+                            hop['nexthop_hostname'] = self.get_device(str(device.device_id)).hostname
+                            hop['nexthop_hostname_short'] = ".".join(self.get_device(str(device.device_id)).hostname.split(".")[:3])
                             hops.append(hop)
                             logger.debug(hop)
                         data['hops'] = hops

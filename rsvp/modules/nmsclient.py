@@ -5,9 +5,9 @@ from urllib.parse import urlencode
 
 import logging
 
-# from .auth
+from pprint import pprint
 
-from .models import Device, SearchOxidizedResult
+from .models import Device, SearchOxidizedResult, OspfNbrResult
 
 requests.packages.urllib3.disable_warnings()
 
@@ -80,6 +80,8 @@ class NmsClient:
 
         if devices_list is not None:
             for device in devices_list['devices']:
+                # pprint(device)
+                # print('')
                 devices.append(Device(device))
 
             return devices
@@ -91,6 +93,17 @@ class NmsClient:
         if device is not None:
             return Device(device['devices'][0])
             # return device
+
+    def get_ospf_nbr(self):
+
+        result = self._make_request("GET", "/ospf", dict())
+
+        ospf_nbr = []
+
+        if result is not None:
+            ospf_nbr = [OspfNbrResult(x) for x in result['ospf_neighbours']]
+
+        return ospf_nbr
 
     def get_oxidized_config(self, hostname: str):
         device_config = self._make_request("GET", "/oxidized/config" + "/" + hostname, dict())
