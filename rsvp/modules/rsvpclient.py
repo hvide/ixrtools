@@ -94,7 +94,7 @@ class RsvpClient(NmsClient):
                             devices = self.get_devices(filter_type="ipv4", query=nexthop_ip)
                             device = [d for d in devices if d.status]
 
-                            if len(devices) > 1:
+                            if len(device) > 1:
                                 logger.warning("more then two devices with te same IP were found: {}".format(device))
 
                             device = device[0]
@@ -123,26 +123,31 @@ class RsvpClient(NmsClient):
         path['name'] = path_name
 
         hops = []
-        for i in range(len(path_hops) - 1):
+        if path_hops is not None:
+            for i in range(len(path_hops) - 1):
 
-            ports = self.search_ports(path_hops[i].replace(".", "_") + " rtif", 'ifName')
+                ports = self.search_ports(path_hops[i].replace(".", "_") + " rtif", 'ifName')
 
-            i += 1
+                i += 1
 
-            device = self.get_device(path_hops[i] + self.domain)
+                device = self.get_device(path_hops[i] + self.domain)
 
-            for port in ports:
+                for port in ports:
 
-                if port['device_id'] == device.device_id:
-                    ip = port['ifName'].split("(")[1].split("/")[0]
-                    hop = {'device': device.hostname, 'ip': ip, 'order_number': i * 10 + 100}
-                    hops.append(hop)
+                    try:
+                        if port['device_id'] == device.device_id:
+                            ip = port['ifName'].split("(")[1].split("/")[0]
+                            hop = {'device': device.hostname, 'ip': ip, 'order_number': i * 10 + 100}
+                            hops.append(hop)
+                    except AttributeError as e:
+                        logger.error("Error: {} - Port {} doesn't belong to device: {} id: {}. Check that the Device name is correct".format(e, port, device.hostname, device.device_id))
 
                 # else:
                 #     logger.info("P2P interface not found between device name: %s id: %s and %s" % (device.hostname, device.device_id, ports))
 
         logging.info(hops)
         path['hops'] = hops
-        template = jinja2_load("templates/rsvp_path.j2")
-        print(template.render(path))
-        return
+        template = jinja2_load("/Users/dgilardoni/PycharmProjects/ixrtools/rsvp/modules/rsvp_path.j2")
+        t = template.render(path)
+        t = t.split("\n")
+        return t

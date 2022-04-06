@@ -1,0 +1,4 @@
+create mpls rsvp-te path "{{ name }}"
+{% for hop in hops -%}
+configure mpls rsvp-te path {{ name }} add ero include {{ hop.ip }}/32 strict order {{ hop.order_number }}
+{% endfor %}

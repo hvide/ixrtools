@@ -32,3 +32,32 @@ def get_path(request):
     }
 
     return render(request, 'rsvp/search_path.html', context)
+
+
+def create_path(request):
+
+    rsvp_path_name_box = request.POST.get('rsvp_path_name')
+    host_input_box = request.POST.get('host_input_box')
+    reversed_box = request.POST.get('reversed')
+    rsvp = RsvpClient(IXR_APY_KEY, IXR_BASE_URL, verify=False)
+
+    context = dict()
+
+    if host_input_box is not None:
+        host_input_box = host_input_box.split("\n")
+        hosts = [x.strip() for x in host_input_box]
+
+        if reversed_box:
+            hosts.reverse()
+
+        result = rsvp.create_rsvp_path(rsvp_path_name_box, hosts)
+
+        context = {
+            'reversed': reversed_box,
+            'hosts': hosts,
+            'result': result
+        }
+        # pprint(context)
+
+    return render(request, 'rsvp/create_path.html', context)
+
