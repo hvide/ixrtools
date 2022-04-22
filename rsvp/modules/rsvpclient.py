@@ -19,8 +19,17 @@ class RsvpClient(NmsClient):
         d = dict()
         for ospf_nbr in ospf_nbrs:
             d[ospf_nbr.ospfNbrIpAddr] = ospf_nbr.ospfNbrRtrId
-
         return d
+
+    def _get_device_by_int_ip(self, nexthop_ip):
+        devices = self.get_devices(filter_type="ipv4", query=nexthop_ip)
+        device = [d for d in devices if d.status]
+
+        if len(device) > 1:
+            logger.warning("more then two devices with te same IP were found: {}".format(device))
+            return
+
+        return device[0]
 
     def get_rsvp_lsp_info(self, search_string):
         search_result = self.search_oxidized(search_string)
@@ -59,11 +68,11 @@ class RsvpClient(NmsClient):
         search_result = self.search_oxidized(search_string)
         data = dict()
 
-        if search_result is not None:
+        if search_result['status'] == "ok":
 
             nexthops = self._nexthop_map()
 
-            for node in search_result:
+            for node in search_result["nodes"]:
                 # hostname = node['node']
                 device = self.get_device(node.full_name)
 
@@ -90,14 +99,25 @@ class RsvpClient(NmsClient):
                             hop['hop_type'] = line_split[-3]
                             hop['nexthop_ip'] = line_split[-4]
                             # device_id = self.search_ports(line_split[-4].split("/")[0], "ifName")[0]['device_id']
-                            nexthop_ip = nexthops[line_split[-4].split("/")[0]]
-                            devices = self.get_devices(filter_type="ipv4", query=nexthop_ip)
-                            device = [d for d in devices if d.status]
+                            try:
+                                nexthop_ip = nexthops[line_split[-4].split("/")[0]]
+                            except KeyError as e:
+                                logger.error(f"Next hop IP: {e} is not in ospf. The path: {search_string} "
+                                             f"on device: {device.hostname} is probably 'down'.")
+                                data["status"] = "error"
+                                data["data"] = f"Next hop IP: {e} is not in ospf. The path: {search_string} " \
+                                       f"on device: {device.hostname} is probably 'down'."
+                                return data
 
-                            if len(device) > 1:
-                                logger.warning("more then two devices with te same IP were found: {}".format(device))
+                            # devices = self.get_devices(filter_type="ipv4", query=nexthop_ip)
+                            # device = [d for d in devices if d.status]
+                            #
+                            # if len(device) > 1:
+                            #     logger.warning("more then two devices with te same IP were found: {}".format(device))
+                            #
+                            # device = device[0]
 
-                            device = device[0]
+                            device = self._get_device_by_int_ip(nexthop_ip)
 
                             hop['nexthop_hostname'] = self.get_device(str(device.device_id)).hostname
                             hop['nexthop_hostname_short'] = ".".join(self.get_device(str(device.device_id)).hostname.split(".")[:3])
@@ -111,8 +131,15 @@ class RsvpClient(NmsClient):
                             data['path_type'] = 'rsvp-te'
                     # else:
                     #     continue
+                data["search_string"] = search_string
+                # status = "ok"
+                data["status"] = "ok"
 
                 return data
+
+        else:
+            logger.warning(f"search_result")
+            return search_result
 
     def create_rsvp_path(self, path_name: str, path_hops: typing.List, backward=False):
 

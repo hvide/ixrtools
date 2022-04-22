@@ -41,7 +41,9 @@
             <input type="submit" value="Submit">
         </form>
 
-        {% if search_string %}
+
+        {% if data %}
+        {% if status == "ok" %}
         <h1>RSVP Path</h1>
         <h2>Path name: {{ search_string }}</h2>
         <table>
@@ -52,7 +54,7 @@
             <th>Order</th>
           </tr>
           <tr>
-            {% for hop in result.hops %}
+            {% for hop in data.hops %}
                 <tr>
                 <td>{{ hop.nexthop_hostname_short }}</td>
                 <td>{{ hop.nexthop_ip }}</td>
@@ -61,6 +63,9 @@
             {% endfor %}
           </tr>
         </table>
+        {% else %}
+        <h5 style="padding-top: 20px;">Error: {{ data }}</h5>
+        {% endif %}
         {% endif %}
     </div>
 

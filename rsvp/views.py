@@ -24,13 +24,14 @@ def get_path(request):
 
     search_string = request.POST.get('rsvp_path_name')
     rsvp = RsvpClient(IXR_APY_KEY, IXR_BASE_URL, verify=False)
-    result = rsvp.get_rsvp_path_info(search_string)
+    data = rsvp.get_rsvp_path_info(search_string)
 
     context = {
-        'result': result,
-        'search_string': search_string
+        'status': data["status"],
+        'data': data,
+        # 'search_string': search_string
     }
-
+    # pprint(context)
     return render(request, 'rsvp/search_path.html', context)
 
 
@@ -57,7 +58,6 @@ def create_path(request):
             'hosts': hosts,
             'result': result
         }
-        # pprint(context)
 
     return render(request, 'rsvp/create_path.html', context)
 

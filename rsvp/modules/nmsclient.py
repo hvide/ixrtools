@@ -42,7 +42,9 @@ class NmsClient:
         else:
             logger.error("Error while making %s request to %s: %s (error code %s)",
                          method, endpoint, response.json(), response.status_code)
-        return None
+            return response.json()
+
+        # return None
 
     def get_devices(self, filter_type=None, query=None):
 
@@ -80,8 +82,6 @@ class NmsClient:
 
         if devices_list is not None:
             for device in devices_list['devices']:
-                # pprint(device)
-                # print('')
                 devices.append(Device(device))
 
             return devices
@@ -112,12 +112,15 @@ class NmsClient:
             return device_config['config']
 
     def search_oxidized(self, search_string: str):
-        search_result = self._make_request("GET", "/oxidized/config/search" + "/" + search_string, dict())
+        data = self._make_request("GET", "/oxidized/config/search" + "/" + search_string, dict())
 
-        if search_result is not None:
-            nodes = [SearchOxidizedResult(node) for node in search_result['nodes']]
-            # return search_result['nodes']
-            return nodes
+        if data["status"] == "ok":
+            nodes = [SearchOxidizedResult(node) for node in data['nodes']]
+            data["nodes"] = nodes
+        return data
+
+        # else:
+        #     return data
 
     def search_ports(self, search_string: str, field=None):
 
