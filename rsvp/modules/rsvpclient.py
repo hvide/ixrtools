@@ -9,7 +9,6 @@ from pprint import pprint
 
 logger = logging.getLogger()
 
-
 class RsvpClient(NmsClient):
     def __init__(self, api_key: str, base_url: str, verify: bool = True):
         super().__init__(api_key, base_url, verify)
@@ -66,18 +65,26 @@ class RsvpClient(NmsClient):
     def get_rsvp_path_info(self, search_string):
 
         search_result = self.search_oxidized(search_string)
-        data = dict()
+        # pprint(search_result)
 
         if search_result['status'] == "ok":
+            data = {
+                'status': 'ok',
+                'content': {
+                    'paths': [],
+                },
+            }
 
             nexthops = self._nexthop_map()
 
             for node in search_result["nodes"]:
-                # hostname = node['node']
+
+                path = dict()
+
                 device = self.get_device(node.full_name)
 
-                data['src_hostname'] = device.hostname
-                data['src_ip'] = device.ip
+                path['src_hostname'] = '.'.join(device.hostname.split(".")[:3])
+                path['src_ip'] = device.ip
 
                 config = self.get_oxidized_config(device.hostname).splitlines()
                 hops = []
@@ -104,10 +111,10 @@ class RsvpClient(NmsClient):
                             except KeyError as e:
                                 logger.error(f"Next hop IP: {e} is not in ospf. The path: {search_string} "
                                              f"on device: {device.hostname} is probably 'down'.")
-                                data["status"] = "error"
-                                data["data"] = f"Next hop IP: {e} is not in ospf. The path: {search_string} " \
+                                path["status"] = "error"
+                                path["data"] = f"Next hop IP: {e} is not in ospf. The path: {search_string} " \
                                        f"on device: {device.hostname} is probably 'down'."
-                                return data
+                                return path
 
                             # devices = self.get_devices(filter_type="ipv4", query=nexthop_ip)
                             # device = [d for d in devices if d.status]
@@ -123,19 +130,21 @@ class RsvpClient(NmsClient):
                             hop['nexthop_hostname_short'] = ".".join(self.get_device(str(device.device_id)).hostname.split(".")[:3])
                             hops.append(hop)
                             logger.debug(hop)
-                        data['hops'] = hops
+                        path['hops'] = hops
 
-                        if not data['hops']:
-                            data['path_type'] = 'ldp'
+                        if not path['hops']:
+                            path['path_type'] = 'ldp'
                         else:
-                            data['path_type'] = 'rsvp-te'
+                            path['path_type'] = 'rsvp-te'
                     # else:
                     #     continue
-                data["search_string"] = search_string
-                # status = "ok"
-                data["status"] = "ok"
 
-                return data
+                data['content']['search_string'] = search_string
+                # status = "ok"
+                # path["status"] = "ok"
+                data['content']['paths'].append(path)
+
+            return data
 
         else:
             logger.warning(f"search_result")
@@ -164,7 +173,7 @@ class RsvpClient(NmsClient):
                     try:
                         if port['device_id'] == device.device_id:
                             ip = port['ifName'].split("(")[1].split("/")[0]
-                            hop = {'device': device.hostname, 'ip': ip, 'order_number': i * 10 + 100}
+                            hop = {'device': device.hostname, 'ip': ip, 'order_number': (i - 1) * 10 + 100}
                             hops.append(hop)
                     except AttributeError as e:
                         logger.error("Error: {} - Port {} doesn't belong to device: {} id: {}. Check that the Device name is correct".format(e, port, device.hostname, device.device_id))

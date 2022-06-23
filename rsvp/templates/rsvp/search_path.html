@@ -31,7 +31,7 @@
 
 <body>
 
-    <div class="mb-3" style="padding-left: 20px; padding-top: 20px;">
+    <div class="search_bar" style="padding-left: 20px; padding-top: 20px;">
         <h1>Search Path</h1>
         <p>Insert the name of the path to search:</p>
         <form action="{% url 'get_path' %}" method="POST">
@@ -40,35 +40,56 @@
             <input class="col-sm-6" type="text" id="rsvp_path_name" name="rsvp_path_name">
             <input type="submit" value="Submit">
         </form>
+    </div>
 
 
         {% if data %}
         {% if status == "ok" %}
-        <h1>RSVP Path</h1>
-        <h2>Path name: {{ search_string }}</h2>
-        <table>
-          <tr>
-            <th>Hostname</th>
-            <th>Next hop IP</th>
-            <th>Hop Type</th>
-            <th>Order</th>
-          </tr>
-          <tr>
-            {% for hop in data.hops %}
-                <tr>
-                <td>{{ hop.nexthop_hostname_short }}</td>
-                <td>{{ hop.nexthop_ip }}</td>
-                <td>{{ hop.hop_type }}</td>
-                <td>{{ hop.order }}</td>
+    <div class="path_info">
+        <div class="title" style="padding-left: 20px; padding-top: 20px; width: 100%; overflow: hidden ">
+            <h1>RSVP Path</h1>
+            <h2>Path name: {{ data.content.search_string }}</h2>
+        </div>
+        {% for path in data.content.paths %}
+
+        <div class="path table" style="padding-left: 20px; padding-top: 20px;  width: 600px; float: left">
+            <h3>Source host: {{ path.src_hostname }}</h3>
+            <table>
+              <tr>
+                <th>Hostname</th>
+                <th>Next hop IP</th>
+                <th>Hop Type</th>
+                <th>Order</th>
+              </tr>
+              <tr>
+                {% for hop in path.hops %}
+                    <tr>
+                    <td>{{ hop.nexthop_hostname_short }}</td>
+                    <td>{{ hop.nexthop_ip }}</td>
+                    <td>{{ hop.hop_type }}</td>
+                    <td>{{ hop.order }}</td>
+                {% endfor %}
+              </tr>
+            </table>
+        </div>
+        <div class="path list" style="padding-left: 20px; padding-top: 20px; margin-left: 620px; height: 400px">
+            <h2>Host List:</h2>
+            <p>
+                {{ path.src_hostname }}<br>
+            {% for hop in path.hops %}
+                {{ hop.nexthop_hostname_short }}<br>
             {% endfor %}
-          </tr>
-        </table>
+            </p>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
         {% else %}
         <h5 style="padding-top: 20px;">Error: {{ data }}</h5>
         {% endif %}
         {% endif %}
-    </div>
-
 
 </body>
 

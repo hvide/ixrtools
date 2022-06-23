@@ -3,13 +3,17 @@ from django.http import HttpResponse
 from django.views.generic import TemplateView
 from .modules.rsvpclient import RsvpClient
 
+import os
+from dotenv import load_dotenv
+
 from pprint import pprint
 
 from .forms import TextForm
 
 # Create your views here.
-IXR_APY_KEY = ""
-IXR_BASE_URL = ""
+load_dotenv()
+IXR_APY_KEY = os.getenv('IXR_APY_KEY')
+IXR_BASE_URL = os.getenv('IXR_BASE_URL')
 
 
 class HomePageView(TemplateView):
