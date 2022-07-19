@@ -1,0 +1,2 @@
+create mpls rsvp-te lsp "{{ lsp_name }}" destination {{ destination }}
+configure mpls rsvp-te lsp "{{ lsp_name }}" transport vpn-traffic allow assigned-only

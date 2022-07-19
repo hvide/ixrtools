@@ -41,8 +41,11 @@ def get_path(request):
 
 def create_path(request):
 
+    rsvp_destination_box = request.POST.get('rsvp_destination')
+    rsvp_lsp_name_box = request.POST.get('rsvp_lsp_name')
     rsvp_path_name_box = request.POST.get('rsvp_path_name')
     host_input_box = request.POST.get('host_input_box')
+    primary_box = request.POST.get('primary')
     reversed_box = request.POST.get('reversed')
     rsvp = RsvpClient(IXR_APY_KEY, IXR_BASE_URL, verify=False)
 
@@ -55,13 +58,23 @@ def create_path(request):
         if reversed_box:
             hosts.reverse()
 
-        result = rsvp.create_rsvp_path(rsvp_path_name_box, hosts)
+        result = []
+
+        if rsvp_lsp_name_box and rsvp_destination_box:
+            result = result + rsvp.create_rsvp_lsp(rsvp_lsp_name_box, rsvp_destination_box)
+
+        result = result + rsvp.create_rsvp_path(rsvp_path_name_box, hosts)
+
+        if rsvp_lsp_name_box and rsvp_destination_box:
+            result = result + rsvp.attach_path_to_lsp(rsvp_lsp_name_box, rsvp_path_name_box, primary_box)
 
         context = {
             'reversed': reversed_box,
             'hosts': hosts,
             'result': result
         }
+
+        # pprint(context, width=160)
 
     return render(request, 'rsvp/create_path.html', context)
 

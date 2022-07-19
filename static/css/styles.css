@@ -1,0 +1,54 @@
+body, ul, li, h1, h2, a{
+  margin: 0;
+  padding: 0;
+  font-family: arial;
+}
+
+body{
+  background-color: #f4f6f8;
+}
+
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 80%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+form{
+  width: 100%;
+}
+
+form > *[type=text]{
+  width: 50%;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+
+.clearfix::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.content-left{
+    width: 70%;
+    float:left;
+    box-sizing: border-box;
+}
+
+.host-list ul{
+  list-style: none;
+  padding: 0;
+}
+
+nav {
+  box-shadow: 0 2px 4px 0 rgba(0,0,0,.2);
+}

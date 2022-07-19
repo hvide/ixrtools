@@ -1,6 +1,7 @@
 import yaml
 import urllib.parse
 import jinja2
+import socket
 
 
 def yml_load(x):
@@ -18,3 +19,7 @@ def str_to_url(string):
 def jinja2_load(filename):
     with open(filename) as t:
         return jinja2.Template(t.read())
+
+
+def resolve(hostname):
+    return socket.gethostbyname(hostname + '.as43531.net')

@@ -3,7 +3,7 @@ import typing
 from .nmsclient import NmsClient
 
 import logging
-from .utils import jinja2_load
+from .utils import jinja2_load, resolve
 
 from pprint import pprint
 
@@ -150,13 +150,18 @@ class RsvpClient(NmsClient):
             logger.warning(f"search_result")
             return search_result
 
-    def create_rsvp_path(self, path_name: str, path_hops: typing.List, backward=False):
+    def create_rsvp_path(self, path_name: str, path_hops: typing.List, backward=False) -> typing.List:
 
         if backward:
             path_hops = list(reversed(path_hops))
 
         path = dict()
         path['name'] = path_name
+
+        # Remove empty line in path_hops
+        for i, x in enumerate(path_hops):
+            if x == '':
+                path_hops.pop(i)
 
         hops = []
         if path_hops is not None:
@@ -185,5 +190,38 @@ class RsvpClient(NmsClient):
         path['hops'] = hops
         template = jinja2_load("/Users/dgilardoni/PycharmProjects/ixrtools/rsvp/modules/rsvp_path.j2")
         t = template.render(path)
-        t = t.split("\n")
-        return t
+        lines = t.split("\n")
+        return lines
+
+    def create_rsvp_lsp(self, lsp_name: str, hostname: str) -> typing.List:
+
+        destination = resolve(hostname)
+
+        data = {
+            'lsp_name': lsp_name,
+            'destination': destination,
+        }
+
+        template = jinja2_load("/Users/dgilardoni/PycharmProjects/ixrtools/rsvp/modules/rsvp_lsp.j2")
+        t = template.render(data)
+        lines = t.split("\n")
+        return lines
+
+    def attach_path_to_lsp(self, lsp_name: str, path_name: str, primary: bool) -> typing.List:
+
+        if primary:
+            pri_sec = "primary"
+        else:
+            pri_sec = "secondary"
+
+        data = {
+            'lsp_name': lsp_name,
+            'path_name': path_name,
+            'pri_sec': pri_sec,
+        }
+
+        template = jinja2_load("/Users/dgilardoni/PycharmProjects/ixrtools/rsvp/modules/attach_path_to_lsp.j2")
+        t = template.render(data)
+        lines = t.split("\n")
+        return lines
+
