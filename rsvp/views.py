@@ -33,15 +33,12 @@ def get_path(request):
     context = {
         'status': data["status"],
         'data': data,
-        # 'search_string': search_string
     }
-    # pprint(context)
     return render(request, 'rsvp/search_path.html', context)
 
 
 def create_path(request):
 
-    rsvp_destination_box = request.POST.get('rsvp_destination')
     rsvp_lsp_name_box = request.POST.get('rsvp_lsp_name')
     rsvp_path_name_box = request.POST.get('rsvp_path_name')
     host_input_box = request.POST.get('host_input_box')
@@ -53,19 +50,19 @@ def create_path(request):
 
     if host_input_box is not None:
         host_input_box = host_input_box.split("\n")
-        hosts = [x.strip() for x in host_input_box]
+        hosts = [x.strip() for x in host_input_box if x]
 
         if reversed_box:
             hosts.reverse()
 
         result = []
 
-        if rsvp_lsp_name_box and rsvp_destination_box:
-            result = result + rsvp.create_rsvp_lsp(rsvp_lsp_name_box, rsvp_destination_box)
+        if rsvp_lsp_name_box:
+            result = result + rsvp.create_rsvp_lsp(rsvp_lsp_name_box, hosts[-1])
 
         result = result + rsvp.create_rsvp_path(rsvp_path_name_box, hosts)
 
-        if rsvp_lsp_name_box and rsvp_destination_box:
+        if rsvp_lsp_name_box:
             result = result + rsvp.attach_path_to_lsp(rsvp_lsp_name_box, rsvp_path_name_box, primary_box)
 
         context = {
@@ -73,8 +70,6 @@ def create_path(request):
             'hosts': hosts,
             'result': result
         }
-
-        # pprint(context, width=160)
 
     return render(request, 'rsvp/create_path.html', context)
 

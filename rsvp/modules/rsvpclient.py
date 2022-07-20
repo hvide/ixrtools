@@ -1,5 +1,5 @@
 import typing
-
+import os
 from .nmsclient import NmsClient
 
 import logging
@@ -8,6 +8,9 @@ from .utils import jinja2_load, resolve
 from pprint import pprint
 
 logger = logging.getLogger()
+
+DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
+
 
 class RsvpClient(NmsClient):
     def __init__(self, api_key: str, base_url: str, verify: bool = True):
@@ -188,7 +191,7 @@ class RsvpClient(NmsClient):
 
         logging.info(hops)
         path['hops'] = hops
-        template = jinja2_load("/Users/dgilardoni/PycharmProjects/ixrtools/rsvp/modules/rsvp_path.j2")
+        template = jinja2_load(DIR + "/rsvp_path.j2")
         t = template.render(path)
         lines = t.split("\n")
         return lines
@@ -202,7 +205,7 @@ class RsvpClient(NmsClient):
             'destination': destination,
         }
 
-        template = jinja2_load("/Users/dgilardoni/PycharmProjects/ixrtools/rsvp/modules/rsvp_lsp.j2")
+        template = jinja2_load(DIR + "/rsvp_lsp.j2")
         t = template.render(data)
         lines = t.split("\n")
         return lines
@@ -220,7 +223,7 @@ class RsvpClient(NmsClient):
             'pri_sec': pri_sec,
         }
 
-        template = jinja2_load("/Users/dgilardoni/PycharmProjects/ixrtools/rsvp/modules/attach_path_to_lsp.j2")
+        template = jinja2_load(DIR + "/attach_path_to_lsp.j2")
         t = template.render(data)
         lines = t.split("\n")
         return lines

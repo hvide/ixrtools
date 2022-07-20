@@ -9,7 +9,7 @@
             <form action="{% url 'get_path' %}" method="POST">
                 {% csrf_token %}
                 <label for="rsvp_path_name">Search:</label><br>
-                <input type="text" id="rsvp_path_name" name="rsvp_path_name">
+                <input type="text" id="rsvp_path_name" name="rsvp_path_name" placeholder="to-sds1_cs1_lax-via-CHI">
                 <input type="submit" value="Submit">
             </form>
         </div>
