@@ -61,12 +61,13 @@ def create_path(request):
             'status': 'ok',
             'reversed': reversed_box,
             'hosts': hosts,
+            'data': [],
         }
 
         if rsvp_lsp_name_box:
             data = rsvp.create_rsvp_lsp(rsvp_lsp_name_box, hosts[-1])
             if data['status'] == 'ok':
-                context['data'] = data['data']
+                context['data'] = context['data'] + data['data']
             else:
                 context = data
                 return render(request, 'rsvp/create_path.html', context)

@@ -20,7 +20,7 @@ class RsvpClient(NmsClient):
         ospf_nbrs = self.get_ospf_nbr()
         d = dict()
         for ospf_nbr in ospf_nbrs:
-            d[ospf_nbr.ospfNbrIpAddr] = ospf_nbr.ospfNbrRtrId
+            d[ospf_nbr.ospfNbrIpAddr] = ospf_nbr.port_id
         return d
 
     def _get_device_by_int_ip(self, nexthop_ip):
@@ -33,41 +33,6 @@ class RsvpClient(NmsClient):
             return
 
         return device[0]
-
-    # def get_rsvp_lsp_info(self, search_string):
-    #     search_result = self.search_oxidized(search_string)
-    #     data = dict()
-
-    #     if search_result is not None:
-
-    #         for node in search_result:
-    #             hostname = node['node']
-    #             device = self.get_device(hostname)
-
-    #             data['src_hostname'] = device.hostname
-    #             data['src_ip'] = device.ip
-
-    #             config = self.get_oxidized_config(hostname).splitlines()
-    #             for line in config:
-
-    #                 mpls_create_lsp = (
-    #                     'create mpls rsvp-te lsp "%s"' % search_string)
-    #                 mpls_add_path = (
-    #                     'configure mpls rsvp-te lsp "%s" add path' % search_string)
-
-    #                 if mpls_create_lsp in line:
-    #                     dst_ip = line.split()[-1]
-    #                     data['dst_ip'] = dst_ip
-    #                     data['dst_hostname'] = self.get_devices('ipv4', dst_ip)[
-    #                         0].hostname
-
-    #                 if mpls_add_path in line:
-    #                     if line.endswith('primary'):
-    #                         data['path_primary'] = line.split()[7].strip('"')
-    #                     if line.endswith('secondary'):
-    #                         data['path_secondary'] = line.split()[7].strip('"')
-
-    #         return data
 
     def get_rsvp_path_info(self, search_string):
 
@@ -83,7 +48,7 @@ class RsvpClient(NmsClient):
             }
 
             nexthops = self._nexthop_map()
-            pprint(nexthops)
+            # pprint(nexthops)
 
             for node in search_result["nodes"]:
 
@@ -115,9 +80,9 @@ class RsvpClient(NmsClient):
                             hop['order'] = line_split[-1]
                             hop['hop_type'] = line_split[-3]
                             hop['nexthop_ip'] = line_split[-4]
-                            # device_id = self.search_ports(line_split[-4].split("/")[0], "ifName")[0]['device_id']
+
                             try:
-                                nexthop_ip = nexthops[line_split[-4].split("/")[
+                                nexthop_port_id = nexthops[line_split[-4].split("/")[
                                     0]]
                             except KeyError as e:
                                 logger.error(f"Next hop IP: {e} is not in ospf. The path: {search_string} "
@@ -127,20 +92,14 @@ class RsvpClient(NmsClient):
                                     f"on device: {device.hostname} is probably 'down'."
                                 return path
 
-                            # devices = self.get_devices(filter_type="ipv4", query=nexthop_ip)
-                            # device = [d for d in devices if d.status]
-                            #
-                            # if len(device) > 1:
-                            #     logger.warning("more then two devices with te same IP were found: {}".format(device))
-                            #
-                            # device = device[0]
-
-                            device = self._get_device_by_int_ip(nexthop_ip)
+                            # device = self._get_device_by_int_ip(nexthop_ip)
+                            device_id = self.get_port_info(
+                                nexthop_port_id).device_id
 
                             hop['nexthop_hostname'] = self.get_device(
-                                str(device.device_id)).hostname
+                                str(device_id)).hostname
                             hop['nexthop_hostname_short'] = ".".join(
-                                self.get_device(str(device.device_id)).hostname.split(".")[:3])
+                                self.get_device(str(device_id)).hostname.split(".")[:3])
                             hops.append(hop)
                             logger.debug(hop)
                         path['hops'] = hops
@@ -176,14 +135,11 @@ class RsvpClient(NmsClient):
             if x == '':
                 path_hops.pop(i)
 
-        # pprint(self.search_ports("BB-sds1_eq2_iad rtif", 'ifName'))
-        # print(path_hops)
+        print(path_hops)
 
         hops = []
         if path_hops is not None:
             for i in range(len(path_hops) - 1):
-
-                # print(self.search_ports("BB-sds1_drt1_atl rtif"))
 
                 ports = self.search_ports(
                     path_hops[i].replace(".", "_") + " rtif", 'ifName')
@@ -191,16 +147,12 @@ class RsvpClient(NmsClient):
                 i += 1
 
                 device = self.get_device(path_hops[i] + self.domain)
-                # print(path_hops[i], device.device_id)
-
-                # pprint(ports)
-                # print('')
 
                 x = [port['device_id'] for port in ports]
                 if not device.device_id in x:
                     logger.warning(
                         f"Error {device.hostname} {device.device_id}")
-                    return {'status': 'error', 'data': f"Error: The link between <b>{path_hops[i]}</b> <> <b>{path_hops[i + 1 ]}</b> is down. Pleease try againg later..."}
+                    return {'status': 'error', 'data': f"Error: Couldn't find the interface on <b>{path_hops[i]}</b> towards <b>{path_hops[i - 1 ]}</b></br> Try checking the port description on {path_hops[i]}."}
 
                 for port in ports:
 
@@ -214,10 +166,6 @@ class RsvpClient(NmsClient):
                         logger.error("Error: {} - Port {} doesn't belong to device: {} id: {}. Check that the Device name is correct".format(
                             e, port, device.hostname, device.device_id))
 
-                # else:
-                #     logger.info("P2P interface not found between device name: %s id: %s and %s" % (device.hostname, device.device_id, ports))
-        # print('')
-        # pprint(hops)
         logging.info(hops)
         path['hops'] = hops
         template = jinja2_load(DIR + "/rsvp_path.j2")

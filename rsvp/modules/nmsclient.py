@@ -7,7 +7,7 @@ import logging
 
 from pprint import pprint
 
-from .models import Device, SearchOxidizedResult, OspfNbrResult
+from .models import Device, SearchOxidizedResult, OspfNbrResult, Port
 
 requests.packages.urllib3.disable_warnings()
 
@@ -29,9 +29,11 @@ class NmsClient:
 
         if method == "GET":
             try:
-                response = requests.get(self.base_url + endpoint, params=data, headers=self._headers, verify=self.verify)
+                response = requests.get(
+                    self.base_url + endpoint, params=data, headers=self._headers, verify=self.verify)
             except Exception as e:  # Takes into account any possible error, most likely network errors
-                logger.error("Connection error while making %s request to %s: %s", method, endpoint, e)
+                logger.error(
+                    "Connection error while making %s request to %s: %s", method, endpoint, e)
                 return None
 
         else:
@@ -47,7 +49,6 @@ class NmsClient:
         # return None
 
     def get_devices(self, filter_type=None, query=None):
-
         """
         Return a list of devices.
         :param filter_type: Can be one of the following to filter or search by:
@@ -106,13 +107,15 @@ class NmsClient:
         return ospf_nbr
 
     def get_oxidized_config(self, hostname: str):
-        device_config = self._make_request("GET", "/oxidized/config" + "/" + hostname, dict())
+        device_config = self._make_request(
+            "GET", "/oxidized/config" + "/" + hostname, dict())
 
         if device_config is not None:
             return device_config['config']
 
     def search_oxidized(self, search_string: str):
-        data = self._make_request("GET", "/oxidized/config/search" + "/" + search_string, dict())
+        data = self._make_request(
+            "GET", "/oxidized/config/search" + "/" + search_string, dict())
 
         if data["status"] == "ok":
             nodes = [SearchOxidizedResult(node) for node in data['nodes']]
@@ -123,7 +126,6 @@ class NmsClient:
         #     return data
 
     def search_ports(self, search_string: str, field=None):
-
         """
         Search for ports matching the query.
         :param search_string: search string to search in fields
@@ -132,9 +134,18 @@ class NmsClient:
         """
 
         if field is not None:
-            search_result = self._make_request("GET", "/ports/search" + "/" + field + "/" + search_string, dict())
+            search_result = self._make_request(
+                "GET", "/ports/search" + "/" + field + "/" + search_string, dict())
         else:
-            search_result = self._make_request("GET", "/ports/search" + "/" + search_string, dict())
+            search_result = self._make_request(
+                "GET", "/ports/search" + "/" + search_string, dict())
 
         if search_result is not None:
             return search_result['ports']
+
+    def get_port_info(self, port_id: int):
+        port_info = self._make_request(
+            "GET", "/ports" + "/" + str(port_id), dict())
+
+        if port_info is not None:
+            return Port(port_info['port'][0])

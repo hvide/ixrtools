@@ -5,15 +5,14 @@ class Device:
     def __init__(self, device_info: typing.Dict):
         self.device_id: int = device_info['device_id']
         self.disabled: bool = device_info['disabled']
-        # self.hostname: str = ".".join(device_info['hostname'].split(".", 3)[:3])
         self.hostname: str = device_info['hostname']
         self.ip: str = device_info['ip']
         self.status: str = device_info['status']
         self.sysName: str = device_info['sysName']
         self.version: str = device_info['version']
         self.hardware: str = device_info['sysDescr'].split(' ', 3)[1][1:-1] \
-                                if device_info['os'] == "xos" \
-                                else device_info['hardware']
+            if device_info['os'] == "xos" \
+            else device_info['hardware']
         self.serial: str = device_info['serial']
         self.sysDescr: str = device_info['sysDescr']
 
@@ -55,6 +54,7 @@ class SearchOxidizedResult:
 class OspfNbrResult:
     def __init__(self, neighbour: typing.Dict):
         self.device_id: int = neighbour['device_id']
+        self.port_id: str = neighbour['port_id']
         self.ospfNbrIpAddr: str = neighbour['ospfNbrIpAddr']
         self.ospfNbrRtrId: str = neighbour['ospfNbrRtrId']
         self.ospfNbrState: str = neighbour['ospfNbrState']
@@ -62,6 +62,7 @@ class OspfNbrResult:
     def to_dict(self) -> typing.Dict:
         return {
             'device_id': self.device_id,
+            'port_id': self.port_id,
             'ospfNbrIpAddr': self.ospfNbrIpAddr,
             'ospfNbrRtrId': self.ospfNbrRtrId,
             'ospfNbrState': self.ospfNbrState,
@@ -71,9 +72,18 @@ class OspfNbrResult:
         return str(self.device_id)
 
 
+class Port:
+    def __init__(self, get_port_info: typing.Dict):
+        self.port_id: int = get_port_info['port_id']
+        self.device_id: str = get_port_info['device_id']
+        self.ifDescr: str = get_port_info['ifDescr']
+        self.ifName: str = get_port_info['ifName']
+        self.portName: str = get_port_info['portName']
+        self.ifIndex: str = get_port_info['ifIndex']
+        self.ifOperStatus: str = get_port_info['ifOperStatus']
+        self.ifAdminStatus: str = get_port_info['ifAdminStatus']
+        self.ifMtu: str = get_port_info['ifMtu']
+        self.ifAlias: str = get_port_info['ifAlias']
 
-# class RsvpLsp:
-#     def __init__(self, data: typing.Dict):
-#         self.source_ip = data['source_hostname']
-#         self.source_hostname = data['source_hostname']
-#         self.destination_ip = data['destination_ip']
+    def __repr__(self):
+        return self.ifName
