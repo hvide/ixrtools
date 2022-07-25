@@ -50,26 +50,44 @@ def create_path(request):
 
     if host_input_box is not None:
         host_input_box = host_input_box.split("\n")
-        hosts = [x.strip() for x in host_input_box if x]
-
+        hosts = [x.strip() for x in host_input_box if x.strip()]
+        # print(hosts)
         if reversed_box:
             hosts.reverse()
 
-        result = []
-
-        if rsvp_lsp_name_box:
-            result = result + rsvp.create_rsvp_lsp(rsvp_lsp_name_box, hosts[-1])
-
-        result = result + rsvp.create_rsvp_path(rsvp_path_name_box, hosts)
-
-        if rsvp_lsp_name_box:
-            result = result + rsvp.attach_path_to_lsp(rsvp_lsp_name_box, rsvp_path_name_box, primary_box)
+        # data = []
 
         context = {
+            'status': 'ok',
             'reversed': reversed_box,
             'hosts': hosts,
-            'result': result
         }
 
-    return render(request, 'rsvp/create_path.html', context)
+        if rsvp_lsp_name_box:
+            data = rsvp.create_rsvp_lsp(rsvp_lsp_name_box, hosts[-1])
+            if data['status'] == 'ok':
+                context['data'] = data['data']
+            else:
+                context = data
+                return render(request, 'rsvp/create_path.html', context)
 
+        data = rsvp.create_rsvp_path(rsvp_path_name_box, hosts)
+        if data['status'] == 'ok':
+            context['data'] = context['data'] + data['data']
+        else:
+            context = data
+            print(context)
+            return render(request, 'rsvp/create_path.html', context)
+
+        if rsvp_lsp_name_box:
+            data = rsvp.attach_path_to_lsp(
+                rsvp_lsp_name_box, rsvp_path_name_box, primary_box)
+            if data['status'] == 'ok':
+                context['data'] = context['data'] + data['data']
+            else:
+                context = data
+                return render(request, 'rsvp/create_path.html', context)
+
+    # print(context)
+
+    return render(request, 'rsvp/create_path.html', context)

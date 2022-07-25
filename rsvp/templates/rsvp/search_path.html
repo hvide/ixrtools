@@ -16,52 +16,52 @@
 
 
             {% if data %}
-            {% if status == "ok" %}
-        <div id="path_info">
-            <div class="title my-3">
-                <h1>RSVP Path</h1>
-                <h2>Path name: {{ data.content.search_string }}</h2>
-            </div>
-            {% for path in data.content.paths %}
-            <div class="clearfix">
-                <div class="content-left">
-                    <h3>Source host: {{ path.src_hostname }}</h3>
-                    <table>
-                      <tr>
-                        <th>Hostname</th>
-                        <th>Next hop IP</th>
-                        <th>Hop Type</th>
-                        <th>Order</th>
-                      </tr>
-                      <tr>
-                        {% for hop in path.hops %}
-                            <tr>
-                            <td>{{ hop.nexthop_hostname_short }}</td>
-                            <td>{{ hop.nexthop_ip }}</td>
-                            <td>{{ hop.hop_type }}</td>
-                            <td>{{ hop.order }}</td>
-                        {% endfor %}
-                      </tr>
-                    </table>
+                {% if status == "ok" %}
+            <div id="path_info">
+                <div class="title my-3">
+                    <h1>RSVP Path</h1>
+                    <h2>Path name: {{ data.content.search_string }}</h2>
                 </div>
-                <div class="host-list">
-                    <h2>Host List:</h2>
-                    <ul>
-                        <li>{{ path.src_hostname }}</li>
-                        {% for hop in path.hops %}
-                        <li>{{ hop.nexthop_hostname_short }}</li>
-                        {% endfor %}
-                    </ul>
+                {% for path in data.content.paths %}
+                <div class="clearfix">
+                    <div class="content-left">
+                        <h3>Source host: {{ path.src_hostname }}</h3>
+                        <table>
+                        <tr>
+                            <th>Hostname</th>
+                            <th>Next hop IP</th>
+                            <th>Hop Type</th>
+                            <th>Order</th>
+                        </tr>
+                        <tr>
+                            {% for hop in path.hops %}
+                                <tr>
+                                <td>{{ hop.nexthop_hostname_short }}</td>
+                                <td>{{ hop.nexthop_ip }}</td>
+                                <td>{{ hop.hop_type }}</td>
+                                <td>{{ hop.order }}</td>
+                            {% endfor %}
+                        </tr>
+                        </table>
+                    </div>
+                    <div class="host-list">
+                        <h2>Host List:</h2>
+                        <ul>
+                            <li>{{ path.src_hostname }}</li>
+                            {% for hop in path.hops %}
+                            <li>{{ hop.nexthop_hostname_short }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 </div>
-            </div>
-            {% endfor %}
+                {% endfor %}
 
+            </div>
         </div>
-    </div>
 
-        {% else %}
-        <h5 style="padding-top: 20px;">Error: {{ data }}</h5>
-        {% endif %}
+            {% else %}
+            <h5 style="padding-top: 20px;">Error: {{ data }}</h5>
+            {% endif %}
         {% endif %}
 
 <!--    <div id="topology-container"></div>-->

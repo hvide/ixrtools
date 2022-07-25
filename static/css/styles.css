@@ -38,6 +38,10 @@ tr:nth-child(even) {
   display: table;
 }
 
+.error{
+  padding-left: 20px;
+}
+
 .content-left{
     width: 70%;
     float:left;

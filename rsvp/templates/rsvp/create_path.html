@@ -31,29 +31,36 @@ sdx1.eq2.iad
 
         </form>
     </div>
-
-    {% if result %}
-        <div class="m-3" id="result">
-            <div class="content-left">
-                <h5 >Exos Config:</h5>
-                    {% for line in result %}
-                    {{ line }}<br>
-                    {% endfor %}
-            </div>
-            <div class="host-list">
-                <h5>Host list:</h5>
-                    {% if reversed == "on" %}
-                        <p>Note: The path was reversed</p>
-                    {% endif %}
-                    
-                    <ul>
-                        {% for host in hosts %}
-                        <li>{{ host }}</li>
+    {% if data %}
+        {% if status == "ok" %}
+            <div class="m-3" id="result">
+                <div class="content-left">
+                    <h5 >Exos Config:</h5>
+                        {% for line in data %}
+                        {{ line }}<br>
                         {% endfor %}
-                    </ul>
-                <br>
+                </div>
+                <div class="host-list">
+                    <h5>Host list:</h5>
+                        {% if reversed == "on" %}
+                            <p>Note: The path was reversed</p>
+                        {% endif %}
+                        
+                        <ul>
+                            {% for host in hosts %}
+                            <li>{{ host }}</li>
+                            {% endfor %}
+                        </ul>
+                    <br>
+                </div>
             </div>
-        </div>
+        {% else %}
+            <div class="error">
+                <h1>Something went wrong!!!</h1>
+                <p>{{ data|safe }}</p>
+            </div>
+        {% endif %}
+
     {% endif %}
 
 {% endblock content %}
